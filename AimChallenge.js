@@ -1,10 +1,11 @@
 import {defs, tiny} from './examples/common.js';
+import { Shape_From_File } from './examples/obj-file-demo.js';
 
 // TODO: HOW TO GET BACK TO JUST THE REGULAR SOLAR SYSTEM
 // TODO: MAYBE FIX THE TILT A LITTLE BIT
 
 const {
-    Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene,
+    Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene, Texture
 } = tiny;
 
 export class AimChallenge extends Scene {
@@ -14,42 +15,19 @@ export class AimChallenge extends Scene {
 
         // At the beginning of our program, load one of each of these shape definitions onto the GPU.
         this.shapes = {
-            torus: new defs.Torus(15, 15),
-            torus2: new defs.Torus(3, 15),
-            sphere: new defs.Subdivision_Sphere(4),
-            sphere1: new (defs.Subdivision_Sphere.prototype.make_flat_shaded_version())(1),
-            sphere2: new (defs.Subdivision_Sphere.prototype.make_flat_shaded_version())(2),
-            sphere3: new defs.Subdivision_Sphere(3),
-            sphere4: new defs.Subdivision_Sphere(4),
-            circle: new defs.Regular_2D_Polygon(1, 15),
-            // TODO:  Fill in as many additional shape instances as needed in this key/value table.
-            //        (Requirement 1)
+            sun: new defs.Subdivision_Sphere(4),
+            wall: new Shape_From_File("assets/wall.obj"),
+            floor: new defs.Cube(),
         };
 
         // *** Materials
         this.materials = {
-            test: new Material(new defs.Phong_Shader(),
-                {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
-            test2: new Material(new Gouraud_Shader(),
-                {ambient: .4, diffusivity: .6, color: hex_color("#992828")}),
-            //ring: new Material(new Ring_Shader(),{color: hex_color("#B08040")}),
             sun: new Material(new defs.Phong_Shader(),
                 {ambient: 1, color: hex_color("#ffffff")}),
-            planet1: new Material(new defs.Phong_Shader(),
-                {ambient: 0, diffusivity: 1, color: hex_color("#808080")}),
-            planet2a: new Material(new Gouraud_Shader(),
-                {ambient: 0, specularity: 1, color: hex_color("#80FFFF")}),
-            planet2b: new Material(new defs.Phong_Shader(),
-                {ambient: 0, specularity: 1, color: hex_color("#80FFFF")}),
-            planet3: new Material(new defs.Phong_Shader(),
-                {ambient: 0, diffusivity: 1, specularity: 1, color: hex_color("#B08040")}),
-            ring: new Material(new Ring_Shader(), {ambient: 1, color: hex_color("#B08040")}),
-            planet4: new Material(new defs.Phong_Shader(),
-                {ambient: 0, diffusivity: 1, specularity: 1, color: hex_color("#0000FF")}),
-            moon: new Material(new defs.Phong_Shader(),
-                {ambient: 0, diffusivity: 1, specularity: 1, color: hex_color("#AA336A")}),
-            // TODO:  Fill in as many additional material objects as needed in this key/value table.
-            //        (Requirement 4)
+            damaged_text: new Material(new defs.Phong_Shader, {
+                ambient: 1, color: hex_color("#808080")}),
+            floor: new Material(new defs.Phong_Shader(),
+                {ambient: 0, color: hex_color("#228B22")}),
         }
 
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
@@ -81,72 +59,19 @@ export class AimChallenge extends Scene {
             Math.PI / 4, context.width / context.height, .1, 1000);
 
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
-
-        // TODO: Create Planets (Requirement 1)
-
-        // SUN
-        let rad = 2 + Math.sin(t * 0.1 * Math.PI);
-        let model_transform_sun = Mat4.scale(rad, rad, rad);
-        let colorRatio = 0.5 + 0.5 * Math.sin(t * 0.1 * Math.PI);
-        // PLANET 1
-        let model_transform_planet1 = Mat4.identity();
-        model_transform_planet1 = model_transform_planet1.times(Mat4.rotation(t,0,1,0));
-        model_transform_planet1 = model_transform_planet1.times(Mat4.translation(5,0,0));
-        this.planet_1 = model_transform_planet1;
-        // PLANET 2
-        let model_transform_planet2 = Mat4.identity();
-        model_transform_planet2 = model_transform_planet2.times(Mat4.rotation(0.75 * t,0,1,0));
-        model_transform_planet2 = model_transform_planet2.times(Mat4.translation(8,0,0));
-        this.planet_2 = model_transform_planet2;
-        // PLANET 3
-        let model_transform_planet3 = Mat4.identity();
-        model_transform_planet3 = model_transform_planet3.times(Mat4.rotation(0.5 * t,0,1,0));
-        model_transform_planet3 = model_transform_planet3.times(Mat4.translation(11,0,0));
-        model_transform_planet3 = model_transform_planet3.times(Mat4.rotation(0.5 * Math.sin(t), 1,1,1));
-        let model_transform_ring = model_transform_planet3;
-        model_transform_ring = model_transform_ring.times(Mat4.scale(2.5, 2.5, 0.1));
-        this.planet_3 = model_transform_planet3;
-        // PLANET 4
-        let model_transform_planet4 = Mat4.identity();
-        model_transform_planet4 = model_transform_planet4.times(Mat4.rotation(0.25 * t,0,1,0));
-        model_transform_planet4 = model_transform_planet4.times(Mat4.translation(14,0,0));
-        this.planet_4 = model_transform_planet4;
-        // MOON
-        let model_transform_moon = model_transform_planet4;
-        model_transform_moon = model_transform_moon.times(Mat4.rotation(t, 0,1,0));
-        model_transform_moon = model_transform_moon.times(Mat4.translation(2,0,0));
-        this.moon = model_transform_moon;
-
-        // TODO: Lighting (Requirement 2)
-        const light_position = vec4(0, 0, 0, 1);
+        const light_position = vec4(-30, 30, -5, 1);
         // The parameters of the Light are: position, color, size
-        program_state.lights = [new Light(light_position, color(1, colorRatio, colorRatio, 1), 10**rad)];
+        program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 10000)];
+        this.shapes.sun.draw(context, program_state, Mat4.translation(-30, 30, -5), this.materials.sun);
 
-        // TODO:  Fill in matrix operations and drawing code to draw the solar system scene (Requirements 3 and 4)
-        this.shapes.sphere4.draw(context, program_state, model_transform_sun, this.materials.sun.override({color: color(1, colorRatio, colorRatio, 1)}));
-        this.shapes.sphere2.draw(context, program_state, model_transform_planet1, this.materials.planet1);
-        if(Math.floor(t%2) == 0) {
-            this.shapes.sphere3.draw(context, program_state, model_transform_planet2, this.materials.planet2a);
-        }
-        else {
-            this.shapes.sphere3.draw(context, program_state, model_transform_planet2, this.materials.planet2b);
-        }
-        this.shapes.sphere4.draw(context, program_state, model_transform_planet3, this.materials.planet3);
-        this.shapes.torus.draw(context, program_state, model_transform_ring, this.materials.ring);
-        this.shapes.sphere4.draw(context, program_state, model_transform_planet4, this.materials.planet4);
-        this.shapes.sphere1.draw(context, program_state, model_transform_moon, this.materials.moon);
-
-        if (this.attached != undefined) {
-            if(this.attached != this.initial_camera_location) {
-                let desired = this.attached();
-                desired = desired.times(Mat4.translation(0, 0, 5));
-                desired = Mat4.inverse(desired);
-                program_state.set_camera(desired.map((x, i) => Vector.from(program_state.camera_inverse[i]).mix(x, 0.1)));
-            }
-            else {
-                program_state.set_camera(this.initial_camera_location);
-            }
-        }
+        let model_transform_wall_front = Mat4.translation(0, 0, -45).times(Mat4.scale(30, 30, 10));
+        this.shapes.wall.draw(context, program_state, model_transform_wall_front, this.materials.damaged_text);
+        let model_transform_wall_left = Mat4.translation(-45, 0, 0).times(Mat4.rotation(Math.PI / 2, 0, 1, 0)).times(Mat4.scale(30, 30, 10));
+        this.shapes.wall.draw(context, program_state, model_transform_wall_left, this.materials.damaged_text);
+        let model_transform_wall_right = Mat4.translation(45, 0, 0).times(Mat4.rotation(-Math.PI / 2, 0, 1, 0)).times(Mat4.scale(30, 30, 10));
+        this.shapes.wall.draw(context, program_state, model_transform_wall_right, this.materials.damaged_text);
+        let model_transform_floor = Mat4.identity().times(Mat4.translation(0, -11, 0)).times(Mat4.scale(30, 0.1, 300));
+        this.shapes.wall.draw(context, program_state, model_transform_floor, this.materials.floor);
     }
 }
 
