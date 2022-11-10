@@ -113,7 +113,7 @@ export class Obj_File_Demo extends Scene {                           // **Obj_Fi
     constructor() {
         super();
         // Load the model file:
-        this.shapes = {"teapot": new Shape_From_File("assets/teapot.obj")};
+        this.shapes = {"teapot": new Shape_From_File("assets/kakashi.obj")};
 
         // Don't create any DOM elements to control this scene:
         this.widget_options = {make_controls: false};
