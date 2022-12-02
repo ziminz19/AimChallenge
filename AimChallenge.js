@@ -65,6 +65,8 @@ export class AimChallenge extends Simulation {
             v[1] = v[1] * 8;
         });
 
+        this.Background_music = new Audio("assets/bgm.mp3");
+
         // *** Materials
         this.materials = {
             sun: new Material(new defs.Phong_Shader(),
@@ -96,7 +98,10 @@ export class AimChallenge extends Simulation {
     make_control_panel() {
         // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         this.key_triggered_button("fire", [" "], () => this.fire = true)
-        this.key_triggered_button("reset game", ["r"], this.reset)
+        this.key_triggered_button("reset game", ["r"], () => {
+            this.reset()
+            this.Background_music.play();
+        });
     }
 
     reset() {
