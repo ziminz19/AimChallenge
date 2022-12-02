@@ -209,7 +209,7 @@ export class AimChallenge extends Simulation {
 
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
 
-        if(dt <100){
+        if(t <100){
             this.Background_music.play()
         }
 
@@ -217,6 +217,7 @@ export class AimChallenge extends Simulation {
         if(this.tm < 60){
             this.tm = this.tm + dt;
         } else {
+            this.Background_music.pause()
             this.active = false
         }
         const light_position1 = vec4(0, 14, -50, 1);
