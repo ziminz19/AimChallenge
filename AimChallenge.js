@@ -38,6 +38,7 @@ export class AimChallenge extends Scene {
             side_wall: new defs.Cube(),
             back_wall: new defs.Cube(),
             floor: new defs.Cube(),
+            ceil: new defs.Cube(),
             crosshair: new Crosshair(),
             rifle: new Shape_From_File("assets/rifle.obj"),
             bullet: new defs.Subdivision_Sphere(3),
@@ -51,13 +52,21 @@ export class AimChallenge extends Scene {
             v[0] = v[0] * 8;
             v[1] = v[1] * 1;
         });
+        this.shapes.floor.arrays.texture_coord.forEach((v) => {
+            v[0] = v[0] * 8;
+            v[1] = v[1] * 8;
+        });
+        this.shapes.ceil.arrays.texture_coord.forEach((v) => {
+            v[0] = v[0] * 8;
+            v[1] = v[1] * 8;
+        });
 
         // *** Materials
         this.materials = {
             sun: new Material(new defs.Phong_Shader(),
                 {ambient: 1, color: hex_color("#ffffff")}),
-            floor: new Material(new defs.Phong_Shader(),
-                {ambient: 0.3, specularity: 0, color: hex_color("#ffffff")}),
+            floor: new Material(new Texture_Scroll_X(),
+                {ambient: 0.4, specularity: 0, texture: new Texture("assets/floor.png", "NEAREST")}),
             target: new Material(new defs.Phong_Shader(),
                 {ambient: 0.5, color: hex_color("#ff0000")}),
             wall: new Material(new Texture_Scroll_X(),
@@ -68,6 +77,8 @@ export class AimChallenge extends Scene {
                 {ambient: 1, texture: new Texture("assets/rifle_texture.png", "NEAREST")}),
             bullet: new Material(new defs.Phong_Shader(),
                 {ambient: 1, specularity: 1, diffusitivity: 1, color: hex_color("#000000")}),
+            ceil: new Material(new Texture_Scroll_X(),
+                {ambient: 0.7, specularity: 0, texture: new Texture("assets/ceil.jpg", "NEAREST")}),
         }
 
         // target-related variables
@@ -78,6 +89,8 @@ export class AimChallenge extends Scene {
         }
 
         this.initial_camera_location = Mat4.look_at(vec3(0, 1.8, 0), vec3(0, 1.8, -15), vec3(0, 2, -1));
+        
+        this.tm = 0;
     }
 
     make_control_panel() {
@@ -97,12 +110,15 @@ export class AimChallenge extends Scene {
             // Define the global camera and projection matrices, which are stored in program_state.
             program_state.set_camera(this.initial_camera_location);
         }
-        console.log(program_state.camera_inverse[1])
 
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, .1, 1000);
 
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
+        if(this.tm < 60){
+            this.tm = this.tm + dt;
+        }
+
         const light_position1 = vec4(0, 14, -50, 1);
         const light_position2 = vec4(0, 14, -150, 1);
         // The parameters of the Light are: position, color, size
@@ -131,7 +147,7 @@ export class AimChallenge extends Scene {
         let model_transform_floor = Mat4.translation(-51, -1, 0).times(Mat4.scale(51, 0.5, 100)).times(Mat4.translation(1, 1, -1));
         this.shapes.floor.draw(context, program_state, model_transform_floor, this.materials.floor);
         let model_transform_ceil = Mat4.translation(-51, 16, 0).times(Mat4.scale(51, 0.5, 100)).times(Mat4.translation(1, 1, -1));
-        this.shapes.floor.draw(context, program_state, model_transform_ceil, this.materials.floor);
+        this.shapes.ceil.draw(context, program_state, model_transform_ceil, this.materials.ceil);
 
         // shoot bullet
         let bullet_size_trans = Mat4.scale(0.1, 0.1, 0.1);
@@ -148,25 +164,118 @@ export class AimChallenge extends Scene {
             }
             this.shapes.target.draw(context, program_state, this.target_list[i], this.materials.target);
         }
+
+        // html function
+        let sc = 0;
+        let scoreEl = document.getElementById("Score");
+        let timeEl = document.getElementById("Time");
+        scoreEl.textContent = sc;
+        timeEl.textContent = 60 - this.tm.toFixed();
     }
 
     // Scoreboard
     show_explanation(document_element) {
         document_element.innerHTML += `
-        <div class="container">
-            <div class="row">
-                <div class="col col-heading">
-                    <h1>HOME</h1>
+        <head>
+        <link href='https://fonts.googleapis.com/css2?family=Silkscreen&display=swap' rel='stylesheet' type='text/css'>
+        <style>
+        body {
+            margin: 0;
+            padding: 0;
+            justify-content: center;
+          }
+          body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #10002b;
+          }
+          .container {
+            max-width: 1080px;
+            max-height: 200px;
+            background: #4c1d95;
+            border-radius: 12px;
+            border: 3px solid white;
+            display: flex;
+            align-self: center;
+            justify-content: space-around;
+            align-items: center;
+            color: white;
+            padding: 68px 82px;
+            gap: 100px;
+            box-shadow: 0px 0px 3px black;
+          }
+          .row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+          }
+          .col-heading h1 {
+            font-family: "Verdana";
+            font-style: normal;
+            font-weight: 700;
+            font-size: 40px;
+            line-height: 36px;
+            text-align: center;
+          
+            color: white;
+          }
+          .col-display {
+            width: 155px;
+            height: 120px;
+            background: #080001;
+            border-radius: 5px;
+            font-family: "Silkscreen", cursive;
+            font-style: normal;
+            font-weight: 400;
+            font-size: 90px;
+            line-height: 110px;
+            text-align: center;
+            color: #f94f6d;
+          }
+          .col-points {
+            margin-top: 25px;
+            display: flex;
+            gap: 10px;
+          }
+          .add {
+            width: 45px;
+            height: 45px;
+            border: 2px solid white;
+            border-radius: 5px;
+            font-family: "Silkscreen", cursive;
+            font-style: normal;
+            font-weight: 400;
+            font-size: 18px;
+            line-height: 28px;
+            text-align: center;
+            color: white;
+            line-height: 35px;
+            background: transparent;
+          }
+        </style>
+        </head>
+
+        <body>
+            <div class="container">
+                <div class="row">
+                    <div class="col col-heading">
+                        <h1>Score</h1>
+                    </div>
+                    <div class="col col-display" id="Score">1</div>
                 </div>
-                <div class="col col-display" id="scoreHome"> 1 </div>
+
+                <div class="row">
+                    <div class="col col-heading">
+                        <h1>Time</h1>
+                    </div>
+                    <div class="col col-display" id="Time">2</div>
+                </div>
             </div>
-        <div class="row">
-            <div class="col col-heading">
-                <h1>GUEST</h1>
-            </div>
-            <div class="col col-display" id="scoreGuest">2</div>
-        </div>
-      </div>`
+        </body>
+      `
     }
 }
 
