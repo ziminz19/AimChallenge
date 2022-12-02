@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3e744886-ac2f-442f-a66e-0e44f403729d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/assets/bgm.mp3" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AimChallenge.js" beforeDir="false" afterPath="$PROJECT_DIR$/AimChallenge.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,7 +44,7 @@
       <option name="presentableId" value="Default" />
       <updated>1669959524886</updated>
       <workItem from="1669959526118" duration="1604000" />
-      <workItem from="1670014741321" duration="1759000" />
+      <workItem from="1670014741321" duration="2062000" />
     </task>
     <servers />
   </component>
