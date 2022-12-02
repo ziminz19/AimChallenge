@@ -13,6 +13,18 @@ const Z_MIN = 50;
 const X_MAX = 46;
 const X_MIN = -46;
 
+class Crosshair extends Shape{
+    constructor() {
+        super("position", "normal", "texture_coord");
+        // Loop 3 times (for each axis), and inside loop twice (for opposing cube sides):
+        for (let i = 0; i < 4; i++){
+            const square_transform = Mat4.rotation(Math.PI / 2 * i, 0, 0, 1).times(Mat4.translation(0.1, -0.05, 0)).times(Mat4.scale(0.5*0.2, 0.5*0.1, 1)).times(Mat4.translation(1, 1, 0));
+            defs.Square.insert_transformed_copy_into(this, [], square_transform);
+        }
+    }
+}
+
+
 export class AimChallenge extends Scene {
     constructor() {
         // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
@@ -26,6 +38,7 @@ export class AimChallenge extends Scene {
             side_wall: new defs.Cube(),
             back_wall: new defs.Cube(),
             floor: new defs.Cube(),
+            crosshair: new Crosshair(),
         };
 
         this.shapes.side_wall.arrays.texture_coord.forEach((v) => {
@@ -42,11 +55,13 @@ export class AimChallenge extends Scene {
             sun: new Material(new defs.Phong_Shader(),
                 {ambient: 1, color: hex_color("#ffffff")}),
             floor: new Material(new defs.Phong_Shader(),
-                {ambient: 0.3, color: hex_color("#ffffff")}),
+                {ambient: 0.3, specularity: 0, color: hex_color("#ffffff")}),
             target: new Material(new defs.Phong_Shader(),
                 {ambient: 0.5, color: hex_color("#ff0000")}),
             wall: new Material(new Texture_Scroll_X(),
                 {ambient: 1, diffusivity: 0.5, specularity: 0, texture: new Texture("assets/wall.jpg", "NEAREST")}),
+            crosshair: new Material(new defs.Phong_Shader(),
+                {ambient: 1, color: hex_color("#00ff00")})
         }
 
         // target-related variables
@@ -76,6 +91,7 @@ export class AimChallenge extends Scene {
             // Define the global camera and projection matrices, which are stored in program_state.
             program_state.set_camera(this.initial_camera_location);
         }
+        console.log(program_state.camera_inverse[1])
 
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, .1, 1000);
@@ -87,6 +103,11 @@ export class AimChallenge extends Scene {
         program_state.lights = [new Light(light_position1, color(1, 1, 1, 1), 10000), new Light(light_position2, color(1, 1, 1, 1), 10000)];
         this.shapes.sun.draw(context, program_state, Mat4.translation(0, 14, -50), this.materials.sun);
         this.shapes.sun.draw(context, program_state, Mat4.translation(0, 14, -150), this.materials.sun);
+        //draw crosshair
+        let cam_x = -program_state.camera_inverse[0][3];
+        let cam_y = -program_state.camera_inverse[1][3];
+        let cam_z = -program_state.camera_inverse[2][3];
+        this.shapes.crosshair.draw(context, program_state, Mat4.translation(cam_x, cam_y, cam_z - 20), this.materials.crosshair);
         
         // Draw walls
         let model_transform_wall_left = Mat4.translation(-51, 0, 0).times(Mat4.scale(0.5, 8, 100)).times(Mat4.translation(1, 1, -1));
@@ -103,7 +124,6 @@ export class AimChallenge extends Scene {
         this.shapes.floor.draw(context, program_state, model_transform_ceil, this.materials.floor);
 
         // Setup targets
-
         for(let i = 0; i < 8; i++){
             if(this.is_targets_down[i]){
                 let new_x = Math.floor(Math.random() * (X_MAX - X_MIN + 1)) + X_MIN;
