@@ -214,7 +214,7 @@ export class AimChallenge extends Simulation {
         }
 
 
-        if(this.tm < 5000){
+        if(this.tm < 60){
             this.tm = this.tm + dt;
         } else {
             this.active = false
