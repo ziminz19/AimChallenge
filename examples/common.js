@@ -937,10 +937,12 @@ const Movement_Controls = defs.Movement_Controls =
         first_person_flyaround(radians_per_frame, meters_per_frame, leeway = 70) {
             // (Internal helper function)
             // Compare mouse's location to all four corners of a dead box:
+            /*
             const offsets_from_dead_box = {
                 plus: [this.mouse.from_center[0] + leeway, this.mouse.from_center[1] + leeway],
                 minus: [this.mouse.from_center[0] - leeway, this.mouse.from_center[1] - leeway]
             };
+            */
             // Apply a camera rotation movement, but only when the mouse is
             // past a minimum distance (leeway) from the canvas's center:
             if (!this.look_around_locked)
@@ -987,16 +989,21 @@ const Movement_Controls = defs.Movement_Controls =
                 this.reset(graphics_state);
                 this.will_take_over_graphics_state = false;
             }
-
+            /*
             if (!this.mouse_enabled_canvases.has(context.canvas)) {
                 this.add_mouse_controls(context.canvas);
                 this.mouse_enabled_canvases.add(context.canvas)
             }
+            */
             // Move in first-person.  Scale the normal camera aiming speed by dt for smoothness:
             this.first_person_flyaround(dt * r, dt * m);
             // Also apply third-person "arcball" camera mode if a mouse drag is occurring:
+
+            /*
             if (this.mouse.anchor)
                 this.third_person_arcball(dt * r);
+
+            */
             // Log some values:
             this.pos = this.inverse().times(vec4(0, 0, 0, 1));
             this.z_axis = this.inverse().times(vec4(0, 0, 1, 0));

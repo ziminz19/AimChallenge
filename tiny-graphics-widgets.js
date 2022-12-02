@@ -22,7 +22,7 @@ const Canvas_Widget = widgets.Canvas_Widget =
 
             const defaults = {
                 show_canvas: true, make_controls: true, show_explanation: true,
-                make_editor: false, make_code_nav: true
+                make_editor: false, make_code_nav: false
             };
             if (initial_scenes && initial_scenes[0])
                 Object.assign(options, initial_scenes[0].widget_options);
