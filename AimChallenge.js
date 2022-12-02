@@ -28,6 +28,7 @@ export class AimChallenge extends Simulation {
         this.score = 0
         this.active = true
         this.tm = 0
+        this.gravity = 1
         
         this.collider = {intersect_test: Body.intersect_sphere, points: new defs.Subdivision_Sphere(4), leeway: .3}
 
@@ -83,6 +84,8 @@ export class AimChallenge extends Simulation {
                 {ambient: 1, texture: new Texture("assets/rifle_texture.png", "NEAREST")}),
             bullet: new Material(new defs.Phong_Shader(),
                 {ambient: 1, specularity: 1, diffusitivity: 1, color: hex_color("#000000")}),
+            collision_box:
+                new Material(new defs.Phong_Shader(), {color: color(0, 1, 0, .5), ambient: 1})
         }
 
         
@@ -97,6 +100,21 @@ export class AimChallenge extends Simulation {
         // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         this.key_triggered_button("fire", [" "], () => this.fire = true)
         this.key_triggered_button("reset game", ["r"], this.reset)
+
+        this.new_line()
+        
+        const gravity_controls = this.control_panel.appendChild(document.createElement("span"));
+            gravity_controls.style.margin = "30px";
+            this.key_triggered_button("-", ["u"], () =>
+                this.gravity /= 1.2, undefined, undefined, undefined, gravity_controls);
+            this.live_string(box => {
+                box.textContent = "Gravity: " + this.gravity.toFixed(2)
+            }, gravity_controls);
+            this.key_triggered_button("+", ["i"], () =>
+                (this.gravity < 10)? this.gravity *= 1.2: this.gravity *=1, undefined, undefined, undefined, gravity_controls);
+            this.new_line();
+
+
     }
 
     reset() {
@@ -130,7 +148,7 @@ export class AimChallenge extends Simulation {
 
         for (let b of this.bullets) {
             // Gravity on Earth, where 1 unit in world space = 1 meter:
-            b.linear_velocity[1] += dt * -0.5;
+            b.linear_velocity[1] += dt * this.gravity * -0.1;
             // If about to fall through floor, reverse y velocity:
         }
 
@@ -218,6 +236,9 @@ export class AimChallenge extends Simulation {
         let timeEl = document.getElementById("Time");
         scoreEl.textContent = this.score;
         timeEl.textContent = 60 - this.tm.toFixed();
+
+
+    
 
 
 
