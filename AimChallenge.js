@@ -39,6 +39,8 @@ export class AimChallenge extends Scene {
             back_wall: new defs.Cube(),
             floor: new defs.Cube(),
             crosshair: new Crosshair(),
+            rifle: new Shape_From_File("assets/rifle.obj"),
+            bullet: new defs.Subdivision_Sphere(3),
         };
 
         this.shapes.side_wall.arrays.texture_coord.forEach((v) => {
@@ -61,7 +63,11 @@ export class AimChallenge extends Scene {
             wall: new Material(new Texture_Scroll_X(),
                 {ambient: 1, diffusivity: 0.5, specularity: 0, texture: new Texture("assets/wall.jpg", "NEAREST")}),
             crosshair: new Material(new defs.Phong_Shader(),
-                {ambient: 1, color: hex_color("#00ff00")})
+                {ambient: 1, color: hex_color("#00ff00")}),
+            rifle: new Material(new Texture_Scroll_X(),
+                {ambient: 1, texture: new Texture("assets/rifle_texture.png", "NEAREST")}),
+            bullet: new Material(new defs.Phong_Shader(),
+                {ambient: 1, specularity: 1, diffusitivity: 1, color: hex_color("#000000")}),
         }
 
         // target-related variables
@@ -103,13 +109,17 @@ export class AimChallenge extends Scene {
         program_state.lights = [new Light(light_position1, color(1, 1, 1, 1), 10000), new Light(light_position2, color(1, 1, 1, 1), 10000)];
         this.shapes.sun.draw(context, program_state, Mat4.translation(0, 14, -50), this.materials.sun);
         this.shapes.sun.draw(context, program_state, Mat4.translation(0, 14, -150), this.materials.sun);
-        //draw crosshair
+        // Draw crosshair
         let cam_x = -program_state.camera_inverse[0][3];
         let cam_y = -program_state.camera_inverse[1][3];
         let cam_z = -program_state.camera_inverse[2][3];
         this.shapes.crosshair.draw(context, program_state, Mat4.translation(cam_x, cam_y, cam_z - 20), this.materials.crosshair);
+
+        // Draw Rifle
+        let model_transform_rifle = Mat4.translation(cam_x + 0.7, cam_y - 0.75, cam_z - 0.2).times(Mat4.rotation(19 * Math.PI / 18, 0, 1, 0)).times(Mat4.rotation(-Math.PI / 23, 1, 0, 0));
+        this.shapes.rifle.draw(context, program_state, model_transform_rifle, this.materials.rifle);
         
-        // Draw walls
+        // Draw wall
         let model_transform_wall_left = Mat4.translation(-51, 0, 0).times(Mat4.scale(0.5, 8, 100)).times(Mat4.translation(1, 1, -1));
         this.shapes.side_wall.draw(context, program_state, model_transform_wall_left, this.materials.wall);
         let model_transform_wall_right = Mat4.translation(50, 0, 0).times(Mat4.scale(0.5, 8, 100)).times(Mat4.translation(1, 1, -1));
@@ -123,6 +133,11 @@ export class AimChallenge extends Scene {
         let model_transform_ceil = Mat4.translation(-51, 16, 0).times(Mat4.scale(51, 0.5, 100)).times(Mat4.translation(1, 1, -1));
         this.shapes.floor.draw(context, program_state, model_transform_ceil, this.materials.floor);
 
+        // shoot bullet
+        let bullet_size_trans = Mat4.scale(0.1, 0.1, 0.1);
+        let model_transform_bullet = Mat4.identity().times(bullet_size_trans);
+        this.shapes.bullet.draw(context, program_state, Mat4.translation(0, 1.8, -20).times(Mat4.scale(0.1, 0.1, 0.1)), this.materials.bullet);
+
         // Setup targets
         for(let i = 0; i < 8; i++){
             if(this.is_targets_down[i]){
@@ -133,6 +148,25 @@ export class AimChallenge extends Scene {
             }
             this.shapes.target.draw(context, program_state, this.target_list[i], this.materials.target);
         }
+    }
+
+    // Scoreboard
+    show_explanation(document_element) {
+        document_element.innerHTML += `
+        <div class="container">
+            <div class="row">
+                <div class="col col-heading">
+                    <h1>HOME</h1>
+                </div>
+                <div class="col col-display" id="scoreHome"> 1 </div>
+            </div>
+        <div class="row">
+            <div class="col col-heading">
+                <h1>GUEST</h1>
+            </div>
+            <div class="col col-display" id="scoreGuest">2</div>
+        </div>
+      </div>`
     }
 }
 
