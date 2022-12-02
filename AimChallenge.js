@@ -119,10 +119,12 @@ export class AimChallenge extends Simulation {
 
         this.key_triggered_button("fire", [" "], () => {
             this.fire = true
+            this.shooting_sound.currentTime = 0.0
             this.shooting_sound.play();
         })
         this.key_triggered_button("reset game", ["r"], () => {
             this.reset()
+            this.Background_music.currentTime = 0.0
             this.Background_music.play();
         });
     }
@@ -206,7 +208,13 @@ export class AimChallenge extends Simulation {
             Math.PI / 4, context.width / context.height, .1, 1000);
 
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
-        if(this.tm < 60){
+
+        if(dt <100){
+            this.Background_music.play()
+        }
+
+
+        if(this.tm < 5000){
             this.tm = this.tm + dt;
         } else {
             this.active = false
